@@ -1,0 +1,95 @@
+// Create an index.html file in HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+</head>
+<body>
+    <h1>Expense Tracker</h1>
+    <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" min="0">
+        <label for="category">Category:</label>
+        <input type="text" id="category">
+        <button onclick="addExpense()">Add Expense</button>
+    </div>
+
+    <div>
+        <h2>Expenses</h2>
+        <ul id="expenseList"></ul>
+    </div>
+
+    <div>
+        <h2>Expense Chart</h2>
+        <canvas id="expenseChart" width="400" height="200"></canvas>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+// Create an app.js file in Javascript 
+const expenses = [];
+
+function addExpense() {
+    const date = document.getElementById('date').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const category = document.getElementById('category').value;
+
+    if (date && !isNaN(amount) && category) {
+        const expense = { date, amount, category };
+        expenses.push(expense);
+        updateExpenseList();
+        updateExpenseChart();
+    }
+}
+
+function updateExpenseList() {
+    const expenseList = document.getElementById('expenseList');
+    expenseList.innerHTML = '';
+    expenses.forEach((expense) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${expense.date} - $${expense.amount.toFixed(2)} (${expense.category})`;
+        expenseList.appendChild(listItem);
+    });
+}
+
+function updateExpenseChart() {
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const categories = Array.from(new Set(expenses.map((expense) => expense.category)));
+    const data = categories.map((category) => {
+        const categoryExpenses = expenses.filter((expense) => expense.category === category);
+        const totalAmount = categoryExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+        return totalAmount.toFixed(2);
+    });
+
+    const colors = categories.map(() => getRandomColor());
+    const chartData = {
+        labels: categories,
+        datasets: [{
+            data,
+            backgroundColor: colors,
+        }],
+    };
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: chartData,
+    });
+}
+
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}

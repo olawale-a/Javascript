@@ -1,0 +1,74 @@
+# install WebSocket library, Socket.io
+npm install express socket.io
+
+//create a file names 'server.js' (server side - Node.js)
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+// Serve static files (e.g., HTML, CSS, JS)
+app.use(express.static('public'));
+
+// Handle socket connections
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // Handle user messages
+    socket.on('chat message', (msg) => {
+        io.emit('chat message', msg);
+    });
+
+    // Handle user disconnection
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+});
+
+
+/* Create a folder named 'public' and inside it, create an 'index.html' file (client side) */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <style>
+        /* Your CSS styles here */
+    </style>
+</head>
+<body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="msg-input" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        const socket = io();
+
+        // Handle form submission
+        $('#form').submit(() => {
+            const message = $('#msg-input').val();
+            socket.emit('chat message', message);
+            $('#msg-input').val('');
+            return false;
+        });
+
+        // Handle incoming messages
+        socket.on('chat message', (msg) => {
+            $('#messages').append($('<li>').text(msg));
+        });
+    </script>
+</body>
+</html>
